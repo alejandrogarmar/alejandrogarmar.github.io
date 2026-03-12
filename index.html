@@ -3,793 +3,196 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alejandro García Martín - Portfolio </title>
+<title>Alejandro García Martín - Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
   :root {
-    --ink: #0a0a0f;
-    --bone: #f0ede6;
-    --acid: #c8ff00;
-    --rust: #e84d1c;
+    --ink: #0a0a0f; --bone: #f0ede6;
+    --acid: #c8ff00; --rust: #e84d1c;
     --smoke: rgba(240,237,230,0.06);
     --glass: rgba(200,255,0,0.08);
   }
-
   html { scroll-behavior: smooth; }
+  body { background: var(--ink); color: var(--bone); font-family: 'Cormorant Garamond', serif; cursor: none; overflow-x: hidden; }
 
-  body {
-    background: var(--ink);
-    color: var(--bone);
-    font-family: 'Cormorant Garamond', serif;
-    cursor: none;
-    overflow-x: hidden;
-  }
+  #cursor { position: fixed; top: 0; left: 0; width: 12px; height: 12px; background: var(--acid); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); transition: transform 0.08s, width 0.2s, height 0.2s; mix-blend-mode: exclusion; }
+  #cursor-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--acid); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width 0.25s, height 0.25s, opacity 0.2s; opacity: 0.5; mix-blend-mode: exclusion; }
+  #cursor-label { position: fixed; pointer-events: none; z-index: 9997; font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--acid); transform: translate(20px,-50%); opacity: 0; transition: opacity 0.2s; white-space: nowrap; }
 
-  /* CUSTOM CURSOR */
-  #cursor {
-    position: fixed; top: 0; left: 0;
-    width: 12px; height: 12px;
-    background: var(--acid);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-    transition: transform 0.08s, width 0.2s, height 0.2s, background 0.2s;
-    mix-blend-mode: exclusion;
-  }
-  #cursor-ring {
-    position: fixed; top: 0; left: 0;
-    width: 40px; height: 40px;
-    border: 1px solid var(--acid);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transform: translate(-50%, -50%);
-    transition: transform 0.18s ease, width 0.25s, height 0.25s, opacity 0.2s;
-    opacity: 0.5;
-    mix-blend-mode: exclusion;
-  }
-  body:hover #cursor-ring { opacity: 1; }
-  .hoverable:hover ~ #cursor, a:hover ~ #cursor { width: 6px; height: 6px; }
+  #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; opacity: 0.35; }
+  #matrix-canvas { position: fixed; inset: 0; z-index: 3; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  #matrix-canvas.active { opacity: 0.15; }
 
-  /* CANVAS BG */
-  #particle-canvas {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 0;
-    opacity: 0.35;
-  }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); background-size: 200px; opacity: 0.4; pointer-events: none; z-index: 1; }
 
-  /* NOISE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    background-size: 200px;
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  /* LAYOUT */
   .content { position: relative; z-index: 2; }
 
-  /* ─── NAV ─── */
-  nav {
-    position: fixed;
-    right: 2.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-    align-items: flex-end;
-  }
-  .nav-dot {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    text-decoration: none;
-    color: var(--bone);
-    cursor: none;
-  }
-  .nav-dot span.label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    opacity: 0;
-    transform: translateX(10px);
-    transition: opacity 0.3s, transform 0.3s;
-  }
+  nav { position: fixed; right: 2.5rem; top: 50%; transform: translateY(-50%); z-index: 100; display: flex; flex-direction: column; gap: 2rem; align-items: flex-end; }
+  .nav-dot { display: flex; align-items: center; gap: 1rem; text-decoration: none; color: var(--bone); cursor: none; }
+  .nav-dot span.label { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0; transform: translateX(10px); transition: opacity 0.3s, transform 0.3s; }
   .nav-dot:hover span.label { opacity: 1; transform: translateX(0); }
-  .nav-dot .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: rgba(240,237,230,0.3);
-    transition: background 0.3s, transform 0.3s, box-shadow 0.3s;
-    flex-shrink: 0;
-  }
-  .nav-dot.active .dot,
-  .nav-dot:hover .dot {
-    background: var(--acid);
-    transform: scale(1.8);
-    box-shadow: 0 0 12px var(--acid);
-  }
+  .nav-dot .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(240,237,230,0.3); transition: background 0.3s, transform 0.3s, box-shadow 0.3s; flex-shrink: 0; }
+  .nav-dot.active .dot, .nav-dot:hover .dot { background: var(--acid); transform: scale(1.8); box-shadow: 0 0 12px var(--acid); }
 
-  /* ─── SECTIONS ─── */
-  section {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding: 4rem 6rem;
-    position: relative;
-  }
+  section { min-height: 100vh; display: flex; align-items: center; padding: 4rem 6rem; position: relative; }
 
-  /* ─── HERO ─── */
-  #hero {
-    justify-content: flex-start;
-    align-items: flex-end;
-    padding-bottom: 8rem;
-    overflow: hidden;
-  }
-
-  .hero-bg-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(10rem, 22vw, 22rem);
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(240,237,230,0.04);
-    white-space: nowrap;
-    pointer-events: none;
-    user-select: none;
-    letter-spacing: -0.02em;
-    animation: bgDrift 18s ease-in-out infinite alternate;
-  }
-  @keyframes bgDrift {
-    from { transform: translate(-50%, -52%) rotate(-1deg); }
-    to   { transform: translate(-50%, -48%) rotate(1deg); }
-  }
-
+  /* HERO */
+  #hero { justify-content: flex-start; align-items: flex-end; padding-bottom: 8rem; overflow: hidden; }
+  .hero-bg-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-family: 'Bebas Neue', sans-serif; font-size: clamp(10rem,22vw,22rem); color: transparent; -webkit-text-stroke: 1px rgba(240,237,230,0.04); white-space: nowrap; pointer-events: none; user-select: none; letter-spacing: -0.02em; animation: bgDrift 18s ease-in-out infinite alternate; }
+  @keyframes bgDrift { from { transform: translate(-50%,-52%) rotate(-1deg); } to { transform: translate(-50%,-48%) rotate(1deg); } }
   .hero-content { max-width: 900px; }
+  .hero-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.7rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--acid); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; opacity: 0; animation: fadeUp 0.9s 0.3s forwards; }
+  .hero-eyebrow::before { content: ''; display: block; width: 40px; height: 1px; background: var(--acid); }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5rem,12vw,11rem); line-height: 0.9; letter-spacing: -0.02em; margin-bottom: 2rem; opacity: 0; animation: fadeUp 0.9s 0.5s forwards; }
+  h1 em { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; color: transparent; -webkit-text-stroke: 1px var(--bone); font-size: 1.05em; }
+  .hero-desc { font-size: clamp(1rem,1.5vw,1.25rem); font-weight: 300; line-height: 1.7; max-width: 480px; color: rgba(240,237,230,0.65); margin-bottom: 3rem; opacity: 0; animation: fadeUp 0.9s 0.7s forwards; }
+  .hero-actions { display: flex; gap: 1.5rem; align-items: center; opacity: 0; animation: fadeUp 0.9s 0.9s forwards; }
 
-  .hero-eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    color: var(--acid);
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    opacity: 0;
-    animation: fadeUp 0.9s 0.3s forwards;
-  }
-  .hero-eyebrow::before {
-    content: '';
-    display: block;
-    width: 40px; height: 1px;
-    background: var(--acid);
-  }
+  .btn-primary { font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; color: var(--ink); background: var(--acid); padding: 1rem 2.5rem; display: inline-block; position: relative; cursor: none; transition: transform 0.2s; clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: var(--rust); clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%); transform: translate(5px,5px); z-index: -1; transition: transform 0.2s; }
+  .btn-primary:hover { transform: translate(-3px,-3px); }
+  .btn-primary:hover::after { transform: translate(8px,8px); }
 
-  h1 {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(5rem, 12vw, 11rem);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeUp 0.9s 0.5s forwards;
-  }
-  h1 em {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--bone);
-    font-size: 1.05em;
-  }
-
-  .hero-desc {
-    font-size: clamp(1rem, 1.5vw, 1.25rem);
-    font-weight: 300;
-    line-height: 1.7;
-    max-width: 480px;
-    color: rgba(240,237,230,0.65);
-    margin-bottom: 3rem;
-    opacity: 0;
-    animation: fadeUp 0.9s 0.7s forwards;
-  }
-
-  .hero-actions {
-    display: flex;
-    gap: 1.5rem;
-    align-items: center;
-    opacity: 0;
-    animation: fadeUp 0.9s 0.9s forwards;
-  }
-
-  .btn-primary {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--ink);
-    background: var(--acid);
-    padding: 1rem 2.5rem;
-    display: inline-block;
-    position: relative;
-    cursor: none;
-    transition: transform 0.2s;
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-  }
-  .btn-primary::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--rust);
-    clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
-    transform: translate(5px, 5px);
-    z-index: -1;
-    transition: transform 0.2s;
-  }
-  .btn-primary:hover { transform: translate(-3px, -3px); }
-  .btn-primary:hover::after { transform: translate(8px, 8px); }
-
-  .btn-ghost {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: var(--bone);
-    padding: 1rem 2rem;
-    border: 1px solid rgba(240,237,230,0.25);
-    display: inline-block;
-    cursor: none;
-    position: relative;
-    overflow: hidden;
-    transition: color 0.3s;
-  }
-  .btn-ghost::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--bone);
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 0.3s;
-    z-index: -1;
-  }
+  .btn-ghost { font-family: 'Space Mono', monospace; font-size: 0.75rem; letter-spacing: 0.15em; text-transform: uppercase; text-decoration: none; color: var(--bone); padding: 1rem 2rem; border: 1px solid rgba(240,237,230,0.25); display: inline-block; cursor: none; position: relative; overflow: hidden; transition: color 0.3s; }
+  .btn-ghost::before { content: ''; position: absolute; inset: 0; background: var(--bone); transform: scaleX(0); transform-origin: left; transition: transform 0.3s; z-index: -1; }
   .btn-ghost:hover { color: var(--ink); }
   .btn-ghost:hover::before { transform: scaleX(1); }
 
-  .scroll-hint {
-    position: absolute;
-    bottom: 3rem;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: rgba(240,237,230,0.3);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-    opacity: 0;
-    animation: fadeUp 1s 1.4s forwards;
-  }
-  .scroll-hint::after {
-    content: '';
-    display: block;
-    width: 1px;
-    height: 50px;
-    background: linear-gradient(to bottom, rgba(200,255,0,0.6), transparent);
-    animation: scrollLine 1.8s ease-in-out infinite;
-  }
-  @keyframes scrollLine {
-    0%   { transform: scaleY(0); transform-origin: top; }
-    50%  { transform: scaleY(1); transform-origin: top; }
-    50.1%{ transform: scaleY(1); transform-origin: bottom; }
-    100% { transform: scaleY(0); transform-origin: bottom; }
-  }
+  .scroll-hint { position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(240,237,230,0.3); display: flex; flex-direction: column; align-items: center; gap: 0.75rem; opacity: 0; animation: fadeUp 1s 1.4s forwards; }
+  .scroll-hint::after { content: ''; display: block; width: 1px; height: 50px; background: linear-gradient(to bottom, rgba(200,255,0,0.6), transparent); animation: scrollLine 1.8s ease-in-out infinite; }
+  @keyframes scrollLine { 0%{transform:scaleY(0);transform-origin:top} 50%{transform:scaleY(1);transform-origin:top} 50.1%{transform:scaleY(1);transform-origin:bottom} 100%{transform:scaleY(0);transform-origin:bottom} }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ─── WORK ─── */
+  /* WORK */
   #work { flex-direction: column; justify-content: center; gap: 5rem; }
+  .section-header { width: 100%; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid rgba(240,237,230,0.1); padding-bottom: 1.5rem; }
+  .section-num { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--acid); letter-spacing: 0.2em; }
+  .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem,5vw,4.5rem); letter-spacing: 0.02em; line-height: 1; }
+  .section-sub { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: rgba(240,237,230,0.4); letter-spacing: 0.2em; }
 
-  .section-header {
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    border-bottom: 1px solid rgba(240,237,230,0.1);
-    padding-bottom: 1.5rem;
-  }
-  .section-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--acid);
-    letter-spacing: 0.2em;
-  }
-  .section-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4.5rem);
-    letter-spacing: 0.02em;
-    line-height: 1;
-  }
-  .section-sub {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: rgba(240,237,230,0.4);
-    letter-spacing: 0.2em;
-  }
-
-  /* PROJECT CARDS — HORIZONTAL TICKER + EXPAND */
-  .projects-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    width: 100%;
-    background: rgba(240,237,230,0.08);
-  }
-
-  .project-card {
-    background: var(--ink);
-    padding: 2.5rem;
-    position: relative;
-    overflow: hidden;
-    cursor: none;
-    transition: background 0.4s;
-    min-height: 320px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-  }
-  .project-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, var(--glass) 0%, transparent 60%);
-    opacity: 0;
-    transition: opacity 0.4s;
-  }
+  .projects-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; width: 100%; background: rgba(240,237,230,0.08); }
+  .project-card { background: var(--ink); padding: 2.5rem; position: relative; overflow: hidden; cursor: none; transition: background 0.4s; min-height: 320px; display: flex; flex-direction: column; justify-content: flex-end; text-decoration: none; color: var(--bone); }
+  .project-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--glass) 0%, transparent 60%); opacity: 0; transition: opacity 0.4s; }
   .project-card:hover::before { opacity: 1; }
   .project-card:hover { background: rgba(200,255,0,0.03); }
-
-  .project-num {
-    position: absolute;
-    top: 2rem; right: 2rem;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 5rem;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(240,237,230,0.06);
-    line-height: 1;
-    transition: color 0.4s, -webkit-text-stroke 0.4s;
-  }
-  .project-card:hover .project-num {
-    -webkit-text-stroke: 1px rgba(200,255,0,0.15);
-  }
-
-  .project-tags {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-bottom: 1rem;
-  }
-  .tag {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.3rem 0.7rem;
-    border: 1px solid rgba(240,237,230,0.15);
-    color: rgba(240,237,230,0.5);
-    transition: border-color 0.3s, color 0.3s;
-  }
-  .project-card:hover .tag {
-    border-color: var(--acid);
-    color: var(--acid);
-  }
-
-  .project-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(1.8rem, 3vw, 2.5rem);
-    letter-spacing: 0.02em;
-    line-height: 1.1;
-    margin-bottom: 0.75rem;
-    transition: color 0.3s;
-  }
+  .project-num { position: absolute; top: 2rem; right: 2rem; font-family: 'Bebas Neue', sans-serif; font-size: 5rem; color: transparent; -webkit-text-stroke: 1px rgba(240,237,230,0.06); line-height: 1; transition: -webkit-text-stroke 0.4s; }
+  .project-card:hover .project-num { -webkit-text-stroke: 1px rgba(200,255,0,0.15); }
+  .project-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .tag { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.15em; text-transform: uppercase; padding: 0.3rem 0.7rem; border: 1px solid rgba(240,237,230,0.15); color: rgba(240,237,230,0.5); transition: border-color 0.3s, color 0.3s; }
+  .project-card:hover .tag { border-color: var(--acid); color: var(--acid); }
+  .project-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.8rem,3vw,2.5rem); letter-spacing: 0.02em; line-height: 1.1; margin-bottom: 0.75rem; transition: color 0.3s; }
   .project-card:hover .project-name { color: var(--acid); }
-
-  .project-desc {
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: rgba(240,237,230,0.5);
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.5s ease, opacity 0.5s;
-    opacity: 0;
-  }
+  .project-desc { font-size: 0.9rem; line-height: 1.6; color: rgba(240,237,230,0.5); max-height: 0; overflow: hidden; transition: max-height 0.5s ease, opacity 0.5s; opacity: 0; }
   .project-card:hover .project-desc { max-height: 100px; opacity: 1; }
+  .project-arrow { position: absolute; bottom: 2rem; right: 2rem; width: 40px; height: 40px; border: 1px solid rgba(240,237,230,0.15); display: flex; align-items: center; justify-content: center; font-size: 1rem; transition: background 0.3s, border-color 0.3s, transform 0.3s; }
+  .project-card:hover .project-arrow { background: var(--acid); border-color: var(--acid); color: var(--ink); transform: rotate(-45deg); }
 
-  .project-arrow {
-    position: absolute;
-    bottom: 2rem; right: 2rem;
-    width: 40px; height: 40px;
-    border: 1px solid rgba(240,237,230,0.15);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-    transition: background 0.3s, border-color 0.3s, transform 0.3s;
-  }
-  .project-card:hover .project-arrow {
-    background: var(--acid);
-    border-color: var(--acid);
-    color: var(--ink);
-    transform: rotate(-45deg);
-  }
-
-  /* ─── ABOUT ─── */
-  #about {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8rem;
-    align-items: center;
-  }
-
+  /* ABOUT */
+  #about { display: grid; grid-template-columns: 1fr 1fr; gap: 8rem; align-items: center; }
   .about-left { position: relative; }
-
-  .about-visual {
-    aspect-ratio: 3/4;
-    position: relative;
-    overflow: hidden;
-  }
-  .about-visual-inner {
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-  }
-  .about-visual-grid {
-    position: absolute; inset: 0;
-    background-image: 
-      linear-gradient(rgba(200,255,0,0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(200,255,0,0.05) 1px, transparent 1px);
-    background-size: 40px 40px;
-    animation: gridMove 8s linear infinite;
-  }
-  @keyframes gridMove {
-    from { transform: perspective(400px) rotateX(20deg) translateY(0); }
-    to   { transform: perspective(400px) rotateX(20deg) translateY(40px); }
-  }
-  .about-visual-label {
-    position: absolute;
-    bottom: 2rem; left: 2rem;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: var(--acid);
-    text-transform: uppercase;
-  }
-  .about-visual-corner {
-    position: absolute;
-    top: 1.5rem; right: 1.5rem;
-    width: 40px; height: 40px;
-    border-top: 2px solid var(--acid);
-    border-right: 2px solid var(--acid);
-  }
-  .about-visual-corner-bl {
-    position: absolute;
-    bottom: 1.5rem; left: 1.5rem;
-    width: 40px; height: 40px;
-    border-bottom: 2px solid var(--acid);
-    border-left: 2px solid var(--acid);
-  }
-
-  .floating-stat {
-    position: absolute;
-    background: rgba(10,10,15,0.9);
-    border: 1px solid rgba(200,255,0,0.2);
-    padding: 1rem 1.5rem;
-    backdrop-filter: blur(10px);
-  }
+  .about-visual { aspect-ratio: 3/4; position: relative; overflow: hidden; }
+  .about-visual-inner { position: absolute; inset: 0; background: linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%); }
+  .about-visual-grid { position: absolute; inset: 0; background-image: linear-gradient(rgba(200,255,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(200,255,0,0.05) 1px, transparent 1px); background-size: 40px 40px; animation: gridMove 8s linear infinite; }
+  @keyframes gridMove { from{transform:perspective(400px) rotateX(20deg) translateY(0)} to{transform:perspective(400px) rotateX(20deg) translateY(40px)} }
+  .about-visual-label { position: absolute; bottom: 2rem; left: 2rem; font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; color: var(--acid); text-transform: uppercase; }
+  .about-visual-corner { position: absolute; top: 1.5rem; right: 1.5rem; width: 40px; height: 40px; border-top: 2px solid var(--acid); border-right: 2px solid var(--acid); }
+  .about-visual-corner-bl { position: absolute; bottom: 1.5rem; left: 1.5rem; width: 40px; height: 40px; border-bottom: 2px solid var(--acid); border-left: 2px solid var(--acid); }
+  .floating-stat { position: absolute; background: rgba(10,10,15,0.9); border: 1px solid rgba(200,255,0,0.2); padding: 1rem 1.5rem; backdrop-filter: blur(10px); }
   .floating-stat:nth-child(2) { top: 15%; right: -15%; }
   .floating-stat:nth-child(3) { bottom: 25%; right: -10%; }
-  .stat-num {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.5rem;
-    color: var(--acid);
-    line-height: 1;
-    display: block;
-  }
-  .stat-label {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: rgba(240,237,230,0.4);
-  }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 2.5rem; color: var(--acid); line-height: 1; display: block; }
+  .stat-label { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,237,230,0.4); }
+  .about-eyebrow { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--acid); margin-bottom: 1.5rem; }
+  h2.about-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.5rem,5vw,4rem); line-height: 0.95; margin-bottom: 2rem; letter-spacing: 0.02em; }
+  h2.about-title em { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; color: transparent; -webkit-text-stroke: 1px rgba(240,237,230,0.6); display: block; }
+  .about-text { font-size: 1rem; line-height: 1.8; color: rgba(240,237,230,0.6); margin-bottom: 2.5rem; }
+  .skills-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2.5rem; }
+  .skill-pill { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.4rem 1rem; background: var(--smoke); border: 1px solid rgba(240,237,230,0.1); color: rgba(240,237,230,0.6); transition: all 0.3s; cursor: none; }
+  .skill-pill:hover { background: var(--acid); color: var(--ink); border-color: var(--acid); }
 
-  .about-right {}
-
-  .about-eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--acid);
-    margin-bottom: 1.5rem;
-  }
-
-  h2.about-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(2.5rem, 5vw, 4rem);
-    line-height: 0.95;
-    margin-bottom: 2rem;
-    letter-spacing: 0.02em;
-  }
-  h2.about-title em {
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    color: transparent;
-    -webkit-text-stroke: 1px rgba(240,237,230,0.6);
-    display: block;
-  }
-
-  .about-text {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: rgba(240,237,230,0.6);
-    margin-bottom: 2.5rem;
-  }
-
-  .skills-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 2.5rem;
-  }
-  .skill-pill {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    padding: 0.4rem 1rem;
-    background: var(--smoke);
-    border: 1px solid rgba(240,237,230,0.1);
-    color: rgba(240,237,230,0.6);
-    transition: all 0.3s;
-    cursor: none;
-  }
-  .skill-pill:hover {
-    background: var(--acid);
-    color: var(--ink);
-    border-color: var(--acid);
-  }
-
-  /* ─── SERVICES ─── */
+  /* SERVICES */
   #services { flex-direction: column; gap: 5rem; }
-
   .services-list { width: 100%; }
-
-  .service-item {
-    border-top: 1px solid rgba(240,237,230,0.1);
-    padding: 2.5rem 0;
-    display: grid;
-    grid-template-columns: 80px 1fr auto;
-    gap: 3rem;
-    align-items: center;
-    cursor: none;
-    position: relative;
-    overflow: hidden;
-    transition: padding-left 0.4s;
-  }
-  .service-item::before {
-    content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 0;
-    background: var(--acid);
-    transition: width 0.4s;
-    z-index: 0;
-  }
+  .service-item { border-top: 1px solid rgba(240,237,230,0.1); padding: 2.5rem 0; display: grid; grid-template-columns: 80px 1fr auto; gap: 3rem; align-items: center; cursor: none; position: relative; overflow: hidden; transition: padding-left 0.4s; }
+  .service-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--acid); transition: width 0.4s; z-index: 0; }
   .service-item:hover::before { width: 3px; }
   .service-item:hover { padding-left: 1.5rem; }
   .service-item:last-child { border-bottom: 1px solid rgba(240,237,230,0.1); }
-
-  .service-num {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--acid);
-    letter-spacing: 0.2em;
-    position: relative; z-index: 1;
-  }
+  .service-num { font-family: 'Space Mono', monospace; font-size: 0.65rem; color: var(--acid); letter-spacing: 0.2em; position: relative; z-index: 1; }
   .service-info { position: relative; z-index: 1; }
-  .service-name {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(1.5rem, 3vw, 2.2rem);
-    letter-spacing: 0.03em;
-    margin-bottom: 0.5rem;
-    transition: color 0.3s;
-  }
+  .service-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(1.5rem,3vw,2.2rem); letter-spacing: 0.03em; margin-bottom: 0.5rem; transition: color 0.3s; }
   .service-item:hover .service-name { color: var(--acid); }
-  .service-desc {
-    font-size: 0.875rem;
-    color: rgba(240,237,230,0.4);
-    line-height: 1.6;
-    max-width: 500px;
-  }
-  .service-icon {
-    font-size: 2rem;
-    opacity: 0.2;
-    transition: opacity 0.3s, transform 0.4s;
-    position: relative; z-index: 1;
-  }
+  .service-desc { font-size: 0.875rem; color: rgba(240,237,230,0.4); line-height: 1.6; max-width: 500px; }
+  .service-icon { font-size: 2rem; opacity: 0.2; transition: opacity 0.3s, transform 0.4s; position: relative; z-index: 1; }
   .service-item:hover .service-icon { opacity: 1; transform: scale(1.2) rotate(10deg); }
 
-  /* ─── CONTACT ─── */
-  #contact {
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    gap: 4rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .contact-bg {
-    position: absolute;
-    inset: 0;
-    background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,255,0,0.04) 0%, transparent 70%);
-  }
-
-  .contact-big {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: clamp(4rem, 12vw, 11rem);
-    line-height: 0.9;
-    letter-spacing: -0.02em;
-    position: relative;
-  }
-  .contact-big .line2 {
-    display: block;
-    color: transparent;
-    -webkit-text-stroke: 1px var(--bone);
-    font-family: 'Cormorant Garamond', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 0.75em;
-  }
-
-  .contact-sub {
-    font-size: 1.1rem;
-    color: rgba(240,237,230,0.5);
-    max-width: 400px;
-    line-height: 1.7;
-  }
-
-  .contact-email {
-    font-family: 'Space Mono', monospace;
-    font-size: clamp(0.9rem, 1.5vw, 1.1rem);
-    color: var(--acid);
-    text-decoration: none;
-    letter-spacing: 0.1em;
-    border-bottom: 1px solid transparent;
-    transition: border-color 0.3s;
-    cursor: none;
-  }
+  /* CONTACT */
+  #contact { flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4rem; position: relative; overflow: hidden; }
+  .contact-bg { position: absolute; inset: 0; background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(200,255,0,0.04) 0%, transparent 70%); }
+  .contact-big { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4rem,12vw,11rem); line-height: 0.9; letter-spacing: -0.02em; position: relative; }
+  .contact-big .line2 { display: block; color: transparent; -webkit-text-stroke: 1px var(--bone); font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 300; font-size: 0.75em; }
+  .contact-sub { font-size: 1.1rem; color: rgba(240,237,230,0.5); max-width: 400px; line-height: 1.7; }
+  .contact-email { font-family: 'Space Mono', monospace; font-size: clamp(0.9rem,1.5vw,1.1rem); color: var(--acid); text-decoration: none; letter-spacing: 0.1em; border-bottom: 1px solid transparent; transition: border-color 0.3s; cursor: none; }
   .contact-email:hover { border-bottom-color: var(--acid); }
-
-  .social-links {
-    display: flex;
-    gap: 2rem;
-  }
-  .social-link {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    text-decoration: none;
-    color: rgba(240,237,230,0.4);
-    transition: color 0.3s;
-    cursor: none;
-    position: relative;
-  }
-  .social-link::after {
-    content: '';
-    position: absolute;
-    bottom: -4px; left: 0; right: 100%;
-    height: 1px;
-    background: var(--acid);
-    transition: right 0.3s;
-  }
+  .social-links { display: flex; gap: 2rem; }
+  .social-link { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; color: rgba(240,237,230,0.4); transition: color 0.3s; cursor: none; position: relative; }
+  .social-link::after { content: ''; position: absolute; bottom: -4px; left: 0; right: 100%; height: 1px; background: var(--acid); transition: right 0.3s; }
   .social-link:hover { color: var(--acid); }
   .social-link:hover::after { right: 0; }
 
-  /* ─── FOOTER ─── */
-  footer {
-    position: relative; z-index: 2;
-    padding: 2rem 6rem;
-    border-top: 1px solid rgba(240,237,230,0.06);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .footer-brand {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.1em;
-    color: rgba(240,237,230,0.3);
-  }
-  .footer-copy {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    color: rgba(240,237,230,0.2);
-    text-transform: uppercase;
-  }
+  footer { position: relative; z-index: 2; padding: 2rem 6rem; border-top: 1px solid rgba(240,237,230,0.06); display: flex; justify-content: space-between; align-items: center; }
+  .footer-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 0.1em; color: rgba(240,237,230,0.3); cursor: none; user-select: none; transition: color 0.3s, letter-spacing 0.3s; }
+  .footer-brand:hover { color: var(--acid); letter-spacing: 0.3em; }
+  .footer-copy { font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; color: rgba(240,237,230,0.2); text-transform: uppercase; }
 
-  /* ─── REVEAL ANIMATIONS ─── */
-  .reveal {
-    opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.9s cubic-bezier(.23,1,.32,1), transform 0.9s cubic-bezier(.23,1,.32,1);
-  }
+  /* REVEALS */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.9s cubic-bezier(.23,1,.32,1), transform 0.9s cubic-bezier(.23,1,.32,1); }
   .reveal.visible { opacity: 1; transform: translateY(0); }
   .reveal-delay-1 { transition-delay: 0.15s; }
   .reveal-delay-2 { transition-delay: 0.3s; }
   .reveal-delay-3 { transition-delay: 0.45s; }
 
-  /* ─── GLITCH TEXT ─── */
-  .glitch {
-    position: relative;
-  }
-  .glitch::before, .glitch::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-  }
-  .glitch::before {
-    color: var(--rust);
-    animation: glitch1 4s infinite;
-    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
-  }
-  .glitch::after {
-    color: var(--acid);
-    animation: glitch2 4s infinite;
-    clip-path: polygon(0 60%, 100% 60%, 100% 75%, 0 75%);
-  }
-  @keyframes glitch1 {
-    0%,95%,100% { transform: translate(0); }
-    96% { transform: translate(-3px, 1px); }
-    97% { transform: translate(3px, -1px); }
-    98% { transform: translate(-2px, 2px); }
-  }
-  @keyframes glitch2 {
-    0%,93%,100% { transform: translate(0); }
-    94% { transform: translate(4px, -2px); }
-    95% { transform: translate(-4px, 2px); }
-    96% { transform: translate(2px, -1px); }
-  }
+  /* GLITCH */
+  .glitch { position: relative; }
+  .glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+  .glitch::before { color: var(--rust); animation: glitch1 4s infinite; clip-path: polygon(0 30%,100% 30%,100% 50%,0 50%); }
+  .glitch::after  { color: var(--acid); animation: glitch2 4s infinite; clip-path: polygon(0 60%,100% 60%,100% 75%,0 75%); }
+  @keyframes glitch1 { 0%,95%,100%{transform:translate(0)} 96%{transform:translate(-3px,1px)} 97%{transform:translate(3px,-1px)} 98%{transform:translate(-2px,2px)} }
+  @keyframes glitch2 { 0%,93%,100%{transform:translate(0)} 94%{transform:translate(4px,-2px)} 95%{transform:translate(-4px,2px)} 96%{transform:translate(2px,-1px)} }
 
-  /* RESPONSIVE */
+  /* ══ EASTER EGGS ══ */
+  @keyframes hintPulse { 0%,100%{opacity:0.3} 50%{opacity:1;color:rgba(200,255,0,0.5)} }
+
+  /* EGG 1: KONAMI */
+  #konami-overlay { position: fixed; inset: 0; z-index: 9000; background: var(--ink); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
+  #konami-overlay.active { opacity: 1; pointer-events: all; }
+  .konami-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem,8vw,5rem); color: var(--acid); text-align: center; letter-spacing: 0.1em; }
+  .konami-quote { font-family: 'Cormorant Garamond', serif; font-style: italic; font-size: 1.3rem; color: rgba(240,237,230,0.55); text-align: center; max-width: 420px; line-height: 1.7; }
+  .konami-close { font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); background: var(--acid); padding: 0.85rem 2.5rem; border: none; cursor: none; margin-top: 1rem; }
+  .konami-hint { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.25em; text-transform: uppercase; color: rgba(240,237,230,0.18); z-index: 10; pointer-events: none; animation: hintPulse 3.5s ease-in-out infinite; }
+
+  /* EGG 2: CLICK COUNTER */
+  #click-toast { position: fixed; bottom: 5rem; right: 2rem; z-index: 500; font-family: 'Space Mono', monospace; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; background: rgba(10,10,15,0.97); border: 1px solid var(--acid); color: var(--acid); padding: 0.75rem 1.5rem; transform: translateY(20px); opacity: 0; transition: all 0.3s; pointer-events: none; }
+  #click-toast.show { transform: translateY(0); opacity: 1; }
+
+  /* EGG 3: MATRIX TOGGLE */
+  #matrix-toggle { position: fixed; top: 2rem; right: 6rem; z-index: 200; font-family: 'Space Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(240,237,230,0.15); cursor: none; border: none; background: none; transition: color 0.3s; animation: hintPulse 4s ease-in-out infinite; }
+  #matrix-toggle:hover { color: var(--acid); }
+
+  /* EGG 4: TRAIL — estilos en JS */
+  .trail-dot { position: fixed; border-radius: 50%; pointer-events: none; z-index: 9990; transform: translate(-50%,-50%); }
+
+  /* EGG 5: SECRET PANEL */
+  #secret-msg { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%) scale(0.85); z-index: 8000; background: rgba(10,10,15,0.98); border: 1px solid rgba(200,255,0,0.3); padding: 3rem 4rem; text-align: center; opacity: 0; pointer-events: none; transition: all 0.4s cubic-bezier(.23,1,.32,1); max-width: 500px; width: 90%; }
+  #secret-msg.show { opacity: 1; pointer-events: all; transform: translate(-50%,-50%) scale(1); }
+  .secret-title { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--acid); letter-spacing: 0.05em; margin-bottom: 1rem; }
+  .secret-text { font-size: 1rem; line-height: 1.8; color: rgba(240,237,230,0.7); margin-bottom: 2rem; }
+  .secret-close { font-family: 'Space Mono', monospace; font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink); background: var(--acid); padding: 0.85rem 2rem; border: none; cursor: none; display: block; width: 100%; }
+  #secret-trigger { position: absolute; bottom: 0; right: 6rem; font-family: 'Space Mono', monospace; font-size: 0.5rem; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(240,237,230,0.1); writing-mode: vertical-rl; padding: 1rem 0.5rem; cursor: none; transition: color 0.4s; animation: hintPulse 5s ease-in-out infinite 1s; }
+  #secret-trigger:hover { color: var(--acid); }
+
   @media (max-width: 900px) {
     section { padding: 4rem 2rem; }
     #about { grid-template-columns: 1fr; gap: 4rem; }
@@ -797,52 +200,73 @@
     .floating-stat { display: none; }
     nav { right: 1rem; }
     footer { padding: 2rem; flex-direction: column; gap: 1rem; text-align: center; }
-    h1 { font-size: clamp(3.5rem, 14vw, 6rem); }
+    h1 { font-size: clamp(3.5rem,14vw,6rem); }
     .service-item { grid-template-columns: 60px 1fr; }
     .service-icon { display: none; }
+    #matrix-toggle, #secret-trigger { display: none; }
   }
 </style>
 </head>
 <body>
 
-<!-- CANVAS PARTICLES -->
 <canvas id="particle-canvas"></canvas>
-
-<!-- CURSOR -->
+<canvas id="matrix-canvas"></canvas>
 <div id="cursor"></div>
 <div id="cursor-ring"></div>
+<div id="cursor-label"></div>
 
-<!-- VERTICAL NAV -->
+<!-- EASTER EGG 1: KONAMI -->
+<div id="konami-overlay">
+  <p style="font-family:'Space Mono',monospace;font-size:0.6rem;letter-spacing:0.3em;color:var(--acid);text-transform:uppercase">Código desbloqueado</p>
+  <div class="konami-title">⬆ ⬆ ⬇ ⬇ ⬅ ➡ ⬅ ➡</div>
+  <p class="konami-quote">"Los mejores proyectos nacen de la misma curiosidad<br>que te trajo hasta aquí."</p>
+  <button class="konami-close hoverable" id="konami-close-btn">Volver al portfolio →</button>
+</div>
+
+<!-- EASTER EGG 2: TOAST -->
+<div id="click-toast"></div>
+
+<!-- EASTER EGG 3: MATRIX -->
+<button id="matrix-toggle" class="hoverable" data-cursor="Activar">[ MODO MATRIX ]</button>
+
+<!-- EASTER EGG 5: SECRET -->
+<div id="secret-msg">
+  <div class="secret-title">Hola, curioso</div>
+  <p class="secret-text">Si estás leyendo esto es porque prestas atención a los detalles.<br>Exactamente el tipo de persona con la que me gusta trabajar.</p>
+  <button class="secret-close hoverable" id="secret-close-btn">Me alegra que estés aquí ✦</button>
+</div>
+
+<!-- KONAMI HINT (visible pero sutil) -->
+<div class="konami-hint">↑ ↑ ↓ ↓ ← → ← → &nbsp; pruébalo</div>
+
+<!-- NAV -->
 <nav>
-  <a href="#hero"     class="nav-dot active"><span class="label">Inicio</span><span class="dot"></span></a>
-  <a href="#work"     class="nav-dot"><span class="label">Proyectos</span><span class="dot"></span></a>
-  <a href="#about"    class="nav-dot"><span class="label">Sobre mí</span><span class="dot"></span></a>
-  <a href="#services" class="nav-dot"><span class="label">Servicios</span><span class="dot"></span></a>
-  <a href="#contact"  class="nav-dot"><span class="label">Contacto</span><span class="dot"></span></a>
+  <a href="#hero"     class="nav-dot active hoverable"><span class="label">Inicio</span><span class="dot"></span></a>
+  <a href="#work"     class="nav-dot hoverable"><span class="label">Proyectos</span><span class="dot"></span></a>
+  <a href="#about"    class="nav-dot hoverable"><span class="label">Sobre mí</span><span class="dot"></span></a>
+  <a href="#services" class="nav-dot hoverable"><span class="label">Servicios</span><span class="dot"></span></a>
+  <a href="#contact"  class="nav-dot hoverable"><span class="label">Contacto</span><span class="dot"></span></a>
 </nav>
 
 <div class="content">
 
-  <!-- ══════ HERO ══════ -->
+  <!-- HERO -->
   <section id="hero">
     <div class="hero-bg-text">PORTFOLIO</div>
     <div class="hero-content">
       <p class="hero-eyebrow">Alejandro García Martín</p>
-      <h1 class="glitch" data-text="Alejandro García Martín">
-        García <em>Martín</em>
-      </h1>
-      <p class="hero-desc">
-        Innovador e Inconformista.
-      </p>
+      <h1 class="glitch" data-text="García Martín">García <em>Martín</em></h1>
+      <p class="hero-desc">Innovador e Inconformista.</p>
       <div class="hero-actions">
-        <a href="#work" class="btn-primary hoverable">Ver proyectos</a>
-        <a href="#contact" class="btn-ghost hoverable">Hablemos →</a>
+        <!-- ✏️ Cambia href por donde quieras que lleve -->
+        <a href="#work" class="btn-primary hoverable" data-cursor="Proyectos">Ver proyectos</a>
+        <a href="#contact" class="btn-ghost hoverable" data-cursor="Contactar">Hablemos →</a>
       </div>
     </div>
     <div class="scroll-hint">Scroll</div>
   </section>
 
-  <!-- ══════ WORK ══════ -->
+  <!-- WORK -->
   <section id="work">
     <div class="section-header reveal">
       <div>
@@ -851,45 +275,33 @@
       </div>
       <p class="section-sub">Casos reales &amp; resultados</p>
     </div>
-
     <div class="projects-grid">
-      <!-- Card 1 -->
-      <div class="project-card reveal hoverable">
+      <!-- ✏️ Cambia href="https://..." por la URL de tu proyecto -->
+      <a href="https://tuproyecto1.com" target="_blank" class="project-card reveal hoverable" data-cursor="Ver proyecto">
         <span class="project-num">01</span>
-        <div class="project-tags">
-          <span class="tag">UI/UX</span>
-          <span class="tag">React</span>
-        </div>
+        <div class="project-tags"><span class="tag">UI/UX</span><span class="tag">React</span></div>
         <h3 class="project-name">Proyecto Alpha</h3>
         <p class="project-desc">Rediseño completo de plataforma SaaS. +40% retención de usuarios y conversión duplicada en 3 meses.</p>
         <div class="project-arrow">→</div>
-      </div>
-      <!-- Card 2 -->
-      <div class="project-card reveal reveal-delay-1 hoverable">
+      </a>
+      <a href="https://tuproyecto2.com" target="_blank" class="project-card reveal reveal-delay-1 hoverable" data-cursor="Ver proyecto">
         <span class="project-num">02</span>
-        <div class="project-tags">
-          <span class="tag">Branding</span>
-          <span class="tag">Motion</span>
-        </div>
+        <div class="project-tags"><span class="tag">Branding</span><span class="tag">Motion</span></div>
         <h3 class="project-name">Identidad Nova</h3>
         <p class="project-desc">Sistema de identidad visual completo para startup fintech. Desde logo hasta sistema de diseño en producción.</p>
         <div class="project-arrow">→</div>
-      </div>
-      <!-- Card 3 -->
-      <div class="project-card reveal reveal-delay-2 hoverable">
+      </a>
+      <a href="https://tuproyecto3.com" target="_blank" class="project-card reveal reveal-delay-2 hoverable" data-cursor="Ver proyecto">
         <span class="project-num">03</span>
-        <div class="project-tags">
-          <span class="tag">Web</span>
-          <span class="tag">3D</span>
-        </div>
+        <div class="project-tags"><span class="tag">Web</span><span class="tag">3D</span></div>
         <h3 class="project-name">Studio Vortex</h3>
         <p class="project-desc">Web inmersiva con Three.js y scroll storytelling para agencia de arquitectura internacional.</p>
         <div class="project-arrow">→</div>
-      </div>
+      </a>
     </div>
   </section>
 
-  <!-- ══════ ABOUT ══════ -->
+  <!-- ABOUT -->
   <section id="about">
     <div class="about-left reveal">
       <div class="about-visual">
@@ -899,37 +311,22 @@
         <div class="about-visual-corner-bl"></div>
         <span class="about-visual-label">Fotografía / 2025</span>
       </div>
-      <div class="floating-stat">
-        <span class="stat-num">5+</span>
-        <span class="stat-label">Años de experiencia</span>
-      </div>
-      <div class="floating-stat">
-        <span class="stat-num">30+</span>
-        <span class="stat-label">Proyectos entregados</span>
-      </div>
+      <div class="floating-stat"><span class="stat-num">5+</span><span class="stat-label">Años de experiencia</span></div>
+      <div class="floating-stat"><span class="stat-num">30+</span><span class="stat-label">Proyectos entregados</span></div>
     </div>
-
     <div class="about-right">
       <p class="about-eyebrow reveal">02 — Sobre mí</p>
       <h2 class="about-title reveal reveal-delay-1">Creo lo que<br><em>otros no ven</em></h2>
-      <p class="about-text reveal reveal-delay-2">
-        Soy un diseñador y desarrollador que vive en el espacio entre el arte y la tecnología. No me conformo con hacer lo que funciona — busco hacer lo que sorprende, lo que conecta, lo que se queda en la memoria.
-      </p>
+      <p class="about-text reveal reveal-delay-2">Soy un diseñador y desarrollador que vive en el espacio entre el arte y la tecnología. No me conformo con hacer lo que funciona — busco hacer lo que sorprende, lo que conecta, lo que se queda en la memoria.</p>
       <div class="skills-list reveal reveal-delay-3">
-        <span class="skill-pill hoverable">Figma</span>
-        <span class="skill-pill hoverable">React</span>
-        <span class="skill-pill hoverable">Three.js</span>
-        <span class="skill-pill hoverable">Motion Design</span>
-        <span class="skill-pill hoverable">Branding</span>
-        <span class="skill-pill hoverable">TypeScript</span>
-        <span class="skill-pill hoverable">CSS avanzado</span>
-        <span class="skill-pill hoverable">WebGL</span>
+        <span class="skill-pill hoverable">Figma</span><span class="skill-pill hoverable">React</span><span class="skill-pill hoverable">Three.js</span><span class="skill-pill hoverable">Motion Design</span><span class="skill-pill hoverable">Branding</span><span class="skill-pill hoverable">TypeScript</span><span class="skill-pill hoverable">CSS avanzado</span><span class="skill-pill hoverable">WebGL</span>
       </div>
-      <a href="#contact" class="btn-primary hoverable reveal reveal-delay-3">Trabajemos juntos</a>
+      <!-- ✏️ Cambia href por tu enlace favorito (CV, contacto, etc.) -->
+      <a href="#contact" class="btn-primary hoverable reveal reveal-delay-3" data-cursor="Contactar">Trabajemos juntos</a>
     </div>
   </section>
 
-  <!-- ══════ SERVICES ══════ -->
+  <!-- SERVICES -->
   <section id="services">
     <div class="section-header reveal">
       <div>
@@ -937,240 +334,219 @@
         <h2 class="section-title">Qué<br>Ofrezco</h2>
       </div>
     </div>
-
     <div class="services-list reveal">
       <div class="service-item hoverable">
         <span class="service-num">01</span>
-        <div class="service-info">
-          <h3 class="service-name">Diseño UI/UX</h3>
-          <p class="service-desc">Interfaces que no solo se ven bien — funcionan, convierten y fidelizan. Research, wireframes, prototipado y sistemas de diseño.</p>
-        </div>
+        <div class="service-info"><h3 class="service-name">Diseño UI/UX</h3><p class="service-desc">Interfaces que no solo se ven bien — funcionan, convierten y fidelizan. Research, wireframes, prototipado y sistemas de diseño.</p></div>
         <span class="service-icon">◈</span>
       </div>
       <div class="service-item hoverable">
         <span class="service-num">02</span>
-        <div class="service-info">
-          <h3 class="service-name">Desarrollo Web</h3>
-          <p class="service-desc">Código limpio y experiencias rápidas. React, Next.js, animaciones avanzadas y rendimiento optimizado.</p>
-        </div>
+        <div class="service-info"><h3 class="service-name">Desarrollo Web</h3><p class="service-desc">Código limpio y experiencias rápidas. React, Next.js, animaciones avanzadas y rendimiento optimizado.</p></div>
         <span class="service-icon">◎</span>
       </div>
       <div class="service-item hoverable">
         <span class="service-num">03</span>
-        <div class="service-info">
-          <h3 class="service-name">Identidad Visual</h3>
-          <p class="service-desc">Marca completa desde el concepto hasta la aplicación. Logo, paleta, tipografía, sistema y guía de uso.</p>
-        </div>
+        <div class="service-info"><h3 class="service-name">Identidad Visual</h3><p class="service-desc">Marca completa desde el concepto hasta la aplicación. Logo, paleta, tipografía, sistema y guía de uso.</p></div>
         <span class="service-icon">◉</span>
       </div>
       <div class="service-item hoverable">
         <span class="service-num">04</span>
-        <div class="service-info">
-          <h3 class="service-name">Experiencias 3D &amp; Motion</h3>
-          <p class="service-desc">Webs inmersivas con Three.js, GSAP y WebGL. Para cuando quieres que tu presencia online sea inolvidable.</p>
-        </div>
+        <div class="service-info"><h3 class="service-name">Experiencias 3D &amp; Motion</h3><p class="service-desc">Webs inmersivas con Three.js, GSAP y WebGL. Para cuando quieres que tu presencia online sea inolvidable.</p></div>
         <span class="service-icon">◌</span>
       </div>
     </div>
   </section>
 
-  <!-- ══════ CONTACT ══════ -->
+  <!-- CONTACT -->
   <section id="contact">
     <div class="contact-bg"></div>
+    <!-- EASTER EGG 5 TRIGGER — visible pero discreto -->
+    <div id="secret-trigger" class="hoverable" data-cursor="...">✦ para los que leen</div>
     <div class="contact-big reveal">
       Contáctame
       <span class="line2">al lío</span>
     </div>
     <p class="contact-sub reveal reveal-delay-1">¿Tienes ideas y ganas? Yo también</p>
-    <a href="mailto:hola@tunombre.com" class="contact-email hoverable reveal reveal-delay-2">alejandrogarciamartinc@gmail.com</a>
+    <!-- ✏️ Cambia el email -->
+    <a href="mailto:alejandrogarciamartinc@gmail.com" class="contact-email hoverable reveal reveal-delay-2" data-cursor="Enviar mail">alejandrogarciamartinc@gmail.com</a>
     <div class="social-links reveal reveal-delay-3">
-      <a href="#" class="social-link hoverable">LinkedIn</a>
-      <a href="#" class="social-link hoverable">Whatsapp</a>
-      <a href="#" class="social-link hoverable">GitHub</a>
-      <a href="#" class="social-link hoverable">Twitter</a>
+      <!-- ✏️ Cambia cada href por tu perfil real -->
+      <a href="https://linkedin.com/in/tu-perfil" target="_blank" class="social-link hoverable" data-cursor="LinkedIn">LinkedIn</a>
+      <a href="https://wa.me/34XXXXXXXXX"          target="_blank" class="social-link hoverable" data-cursor="WhatsApp">Whatsapp</a>
+      <a href="https://github.com/tu-usuario"      target="_blank" class="social-link hoverable" data-cursor="GitHub">GitHub</a>
+      <a href="https://twitter.com/tu-usuario"     target="_blank" class="social-link hoverable" data-cursor="Twitter">Twitter</a>
     </div>
   </section>
 
 </div>
 
-<!-- FOOTER -->
 <footer>
-  <span class="footer-brand">Fortia ©</span>
+  <!-- EASTER EGG 2: haz click varias veces -->
+  <span class="footer-brand hoverable" id="logo-click" data-cursor="...">Fortia ©</span>
   <span class="footer-copy">Fortis fortuna adiuvat sed aude est facere.</span>
 </footer>
 
 <script>
-// ═══════════════════════════════════════
-// PARTICLE SYSTEM
-// ═══════════════════════════════════════
+// ══════════════════════════════════════════
+// PARTICLES
+// ══════════════════════════════════════════
 const canvas = document.getElementById('particle-canvas');
 const ctx = canvas.getContext('2d');
 let W, H, particles = [], mouse = { x: -9999, y: -9999 };
-
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-resize();
-window.addEventListener('resize', resize);
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
 
 class Particle {
   constructor() { this.reset(); }
   reset() {
-    this.x = Math.random() * W;
-    this.y = Math.random() * H;
-    this.size = Math.random() * 1.5 + 0.3;
-    this.vx = (Math.random() - 0.5) * 0.3;
-    this.vy = (Math.random() - 0.5) * 0.3;
-    this.opacity = Math.random() * 0.5 + 0.1;
-    this.color = Math.random() > 0.85 ? '#c8ff00' : '#f0ede6';
-    this.pulsePhase = Math.random() * Math.PI * 2;
-    this.pulseSpeed = 0.01 + Math.random() * 0.02;
+    this.x = Math.random()*W; this.y = Math.random()*H;
+    this.size = Math.random()*1.5+0.3;
+    this.vx = (Math.random()-0.5)*0.3; this.vy = (Math.random()-0.5)*0.3;
+    this.opacity = Math.random()*0.5+0.1;
+    this.color = Math.random()>0.85 ? '#c8ff00' : '#f0ede6';
+    this.pulsePhase = Math.random()*Math.PI*2;
+    this.pulseSpeed = 0.01+Math.random()*0.02;
   }
   update() {
-    this.x += this.vx;
-    this.y += this.vy;
+    this.x += this.vx; this.y += this.vy;
     this.pulsePhase += this.pulseSpeed;
-
-    // Mouse repulsion
-    const dx = this.x - mouse.x;
-    const dy = this.y - mouse.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    if (dist < 120) {
-      const force = (120 - dist) / 120;
-      this.x += (dx / dist) * force * 2.5;
-      this.y += (dy / dist) * force * 2.5;
-    }
-
-    if (this.x < 0) this.x = W;
-    if (this.x > W) this.x = 0;
-    if (this.y < 0) this.y = H;
-    if (this.y > H) this.y = 0;
+    const dx=this.x-mouse.x, dy=this.y-mouse.y, dist=Math.sqrt(dx*dx+dy*dy);
+    if (dist < 120) { const f=(120-dist)/120; this.x+=(dx/dist)*f*2.5; this.y+=(dy/dist)*f*2.5; }
+    if (this.x<0)this.x=W; if(this.x>W)this.x=0; if(this.y<0)this.y=H; if(this.y>H)this.y=0;
   }
   draw() {
-    const pulse = 0.5 + 0.5 * Math.sin(this.pulsePhase);
-    ctx.globalAlpha = this.opacity * (0.6 + 0.4 * pulse);
-    ctx.fillStyle = this.color;
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-    ctx.fill();
+    const pulse=0.5+0.5*Math.sin(this.pulsePhase);
+    ctx.globalAlpha=this.opacity*(0.6+0.4*pulse); ctx.fillStyle=this.color;
+    ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2); ctx.fill();
   }
 }
-
-for (let i = 0; i < 180; i++) particles.push(new Particle());
+for(let i=0;i<180;i++) particles.push(new Particle());
 
 function drawLines() {
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x;
-      const dy = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      if (dist < 90) {
-        ctx.globalAlpha = (1 - dist/90) * 0.08;
-        ctx.strokeStyle = '#f0ede6';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.stroke();
-      }
-    }
+  for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){
+    const dx=particles[i].x-particles[j].x, dy=particles[i].y-particles[j].y, d=Math.sqrt(dx*dx+dy*dy);
+    if(d<90){ctx.globalAlpha=(1-d/90)*0.08;ctx.strokeStyle='#f0ede6';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}
   }
 }
+function animateP(){ ctx.clearRect(0,0,W,H); particles.forEach(p=>{p.update();p.draw();}); drawLines(); requestAnimationFrame(animateP); }
+animateP();
 
-function animate() {
-  ctx.clearRect(0, 0, W, H);
-  particles.forEach(p => { p.update(); p.draw(); });
-  drawLines();
-  requestAnimationFrame(animate);
-}
-animate();
-
-// ═══════════════════════════════════════
-// CUSTOM CURSOR
-// ═══════════════════════════════════════
-const cursor = document.getElementById('cursor');
-const ring   = document.getElementById('cursor-ring');
-let mouseX = 0, mouseY = 0;
-let ringX = 0, ringY = 0;
-
-document.addEventListener('mousemove', e => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top  = e.clientY + 'px';
+// ══════════════════════════════════════════
+// CURSOR
+// ══════════════════════════════════════════
+const cursorEl=document.getElementById('cursor'), ring=document.getElementById('cursor-ring'), label=document.getElementById('cursor-label');
+let mouseX=0,mouseY=0,ringX=0,ringY=0;
+document.addEventListener('mousemove',e=>{
+  mouseX=e.clientX; mouseY=e.clientY; mouse.x=e.clientX; mouse.y=e.clientY;
+  cursorEl.style.left=e.clientX+'px'; cursorEl.style.top=e.clientY+'px';
+  label.style.left=e.clientX+'px'; label.style.top=e.clientY+'px';
 });
-
-function animateRing() {
-  ringX += (mouseX - ringX) * 0.12;
-  ringY += (mouseY - ringY) * 0.12;
-  ring.style.left = ringX + 'px';
-  ring.style.top  = ringY + 'px';
-  requestAnimationFrame(animateRing);
-}
+function animateRing(){ ringX+=(mouseX-ringX)*0.12; ringY+=(mouseY-ringY)*0.12; ring.style.left=ringX+'px'; ring.style.top=ringY+'px'; requestAnimationFrame(animateRing); }
 animateRing();
 
-document.querySelectorAll('.hoverable, a, button').forEach(el => {
-  el.addEventListener('mouseenter', () => {
-    cursor.style.transform = 'translate(-50%, -50%) scale(0.4)';
-    ring.style.width  = '60px';
-    ring.style.height = '60px';
+document.querySelectorAll('.hoverable,a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{
+    cursorEl.style.transform='translate(-50%,-50%) scale(0.4)';
+    ring.style.width='60px'; ring.style.height='60px';
+    const txt=el.dataset.cursor; if(txt){label.textContent=txt;label.style.opacity='1';}
   });
-  el.addEventListener('mouseleave', () => {
-    cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-    ring.style.width  = '40px';
-    ring.style.height = '40px';
-  });
-});
-
-// ═══════════════════════════════════════
-// INTERSECTION OBSERVER — REVEALS
-// ═══════════════════════════════════════
-const reveals = document.querySelectorAll('.reveal');
-const observer = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) e.target.classList.add('visible');
-  });
-}, { threshold: 0.12 });
-reveals.forEach(r => observer.observe(r));
-
-// ═══════════════════════════════════════
-// ACTIVE NAV DOT ON SCROLL
-// ═══════════════════════════════════════
-const sections = document.querySelectorAll('section[id]');
-const navDots  = document.querySelectorAll('.nav-dot');
-
-const navObserver = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      navDots.forEach(d => d.classList.remove('active'));
-      const active = document.querySelector(`.nav-dot[href="#${e.target.id}"]`);
-      if (active) active.classList.add('active');
-    }
-  });
-}, { threshold: 0.5 });
-sections.forEach(s => navObserver.observe(s));
-
-// ═══════════════════════════════════════
-// PARALLAX HERO BG TEXT
-// ═══════════════════════════════════════
-const bgText = document.querySelector('.hero-bg-text');
-window.addEventListener('scroll', () => {
-  const scrollY = window.scrollY;
-  if (bgText) bgText.style.transform = `translate(-50%, calc(-50% + ${scrollY * 0.3}px))`;
-});
-
-// ═══════════════════════════════════════
-// SMOOTH SCROLL FOR NAV LINKS
-// ═══════════════════════════════════════
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+  el.addEventListener('mouseleave',()=>{
+    cursorEl.style.transform='translate(-50%,-50%) scale(1)';
+    ring.style.width='40px'; ring.style.height='40px'; label.style.opacity='0';
   });
 });
+
+// ══════════════════════════════════════════
+// REVEALS + NAV
+// ══════════════════════════════════════════
+new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.12})
+  .observe.call(new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.12}), ...document.querySelectorAll('.reveal'));
+
+const obs = new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:0.12});
+document.querySelectorAll('.reveal').forEach(r=>obs.observe(r));
+
+const navObs=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){
+    document.querySelectorAll('.nav-dot').forEach(d=>d.classList.remove('active'));
+    const a=document.querySelector(`.nav-dot[href="#${e.target.id}"]`); if(a)a.classList.add('active');
+  }
+}),{threshold:0.5});
+document.querySelectorAll('section[id]').forEach(s=>navObs.observe(s));
+
+const bgText=document.querySelector('.hero-bg-text');
+window.addEventListener('scroll',()=>{ if(bgText) bgText.style.transform=`translate(-50%,calc(-50% + ${window.scrollY*0.3}px))`; });
+
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{ const t=document.querySelector(a.getAttribute('href')); if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});} });
+});
+
+// ══════════════════════════════════════════
+// EASTER EGG 1 — KONAMI CODE
+// ══════════════════════════════════════════
+const KS=['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+let ki=0;
+document.addEventListener('keydown',e=>{
+  if(e.key===KS[ki]){ ki++; if(ki===KS.length){ document.getElementById('konami-overlay').classList.add('active'); ki=0; } }
+  else ki=0;
+});
+document.getElementById('konami-close-btn').addEventListener('click',()=>document.getElementById('konami-overlay').classList.remove('active'));
+
+// ══════════════════════════════════════════
+// EASTER EGG 2 — LOGO CLICK COUNTER
+// ══════════════════════════════════════════
+const msgs=['1 clic — sigues aquí','2 — curioso/a','3 — ya te noto','4 — ¿en serio?','5 — me gustas','6 — somos iguales','7 — ya somos amigos','Para. Por favor. 😄'];
+let clicks=0, toastT;
+const toast=document.getElementById('click-toast');
+document.getElementById('logo-click').addEventListener('click',()=>{
+  clicks++; toast.textContent=msgs[Math.min(clicks-1,msgs.length-1)];
+  toast.classList.add('show'); clearTimeout(toastT);
+  toastT=setTimeout(()=>toast.classList.remove('show'),2200);
+});
+
+// ══════════════════════════════════════════
+// EASTER EGG 3 — MODO MATRIX
+// ══════════════════════════════════════════
+const mCanvas=document.getElementById('matrix-canvas'), mCtx=mCanvas.getContext('2d');
+let matrixActive=false, matrixAnim;
+function startMatrix(){
+  mCanvas.width=window.innerWidth; mCanvas.height=window.innerHeight;
+  const cols=Math.floor(mCanvas.width/20), drops=Array(cols).fill(1);
+  function draw(){
+    mCtx.fillStyle='rgba(10,10,15,0.05)'; mCtx.fillRect(0,0,mCanvas.width,mCanvas.height);
+    mCtx.fillStyle='#c8ff00'; mCtx.font='15px monospace';
+    drops.forEach((y,i)=>{ const ch=String.fromCharCode(0x30A0+Math.random()*96); mCtx.fillText(ch,i*20,y*20); if(y*20>mCanvas.height&&Math.random()>0.975)drops[i]=0; drops[i]++; });
+    if(matrixActive) matrixAnim=requestAnimationFrame(draw);
+  }
+  draw();
+}
+document.getElementById('matrix-toggle').addEventListener('click',()=>{
+  matrixActive=!matrixActive;
+  const mc=document.getElementById('matrix-canvas'), btn=document.getElementById('matrix-toggle');
+  if(matrixActive){ mc.classList.add('active'); startMatrix(); btn.textContent='[ MODO NORMAL ]'; }
+  else { mc.classList.remove('active'); cancelAnimationFrame(matrixAnim); mCtx.clearRect(0,0,mCanvas.width,mCanvas.height); btn.textContent='[ MODO MATRIX ]'; }
+});
+
+// ══════════════════════════════════════════
+// EASTER EGG 4 — CURSOR TRAIL
+// ══════════════════════════════════════════
+const trailC=['#c8ff00','#e84d1c','rgba(240,237,230,0.6)'];
+document.addEventListener('mousemove',e=>{
+  if(Math.random()>0.72){
+    const d=document.createElement('div'); d.className='trail-dot';
+    const sz=Math.random()*4+2;
+    d.style.cssText=`width:${sz}px;height:${sz}px;background:${trailC[Math.floor(Math.random()*3)]};left:${e.clientX}px;top:${e.clientY}px;opacity:0.5;`;
+    document.body.appendChild(d);
+    let op=0.5;
+    const fade=setInterval(()=>{ op-=0.05; d.style.opacity=op; if(op<=0){clearInterval(fade);d.remove();} },25);
+  }
+});
+
+// ══════════════════════════════════════════
+// EASTER EGG 5 — SECRET PANEL
+// ══════════════════════════════════════════
+document.getElementById('secret-trigger').addEventListener('click',()=>document.getElementById('secret-msg').classList.add('show'));
+document.getElementById('secret-close-btn').addEventListener('click',()=>document.getElementById('secret-msg').classList.remove('show'));
 </script>
 </body>
 </html>
